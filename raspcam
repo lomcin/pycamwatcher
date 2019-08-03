@@ -1,0 +1,55 @@
+#!/usr/bin/python3
+import os, time
+
+print("PyCamWatcher")
+print("Author: Lucas Oliveira Maggi (lom@cin.ufpe.br)")
+print("Any configuration may be done on 'config.py' file.")
+
+from config import *
+
+if (IMAGE_PREVIEW): COM_PREVIEW = " -n"
+else: COM_PREVIEW = ""
+
+if (type(IMAGE_PREVIEW_TIMEOUT) is int): COM_TIMEOUT=" -t "+ str(IMAGE_PREVIEW_TIMEOUT)
+else: COM_TIMEOUT=" -t 1"
+
+if (os.path.exists(IMAGE_PATH)):
+	if (os.path.isdir(IMAGE_PATH)):
+		print("Using folder '{}' to save files.".format(IMAGE_PATH))
+	else:
+		print("Sorry, I can't create '{}'.".format(IMAGE_PATH))
+		print("Please change the IMAGE_PATH value on 'config.py'")
+		exit(1)
+else:
+	try:
+		os.makedirs(IMAGE_PATH)
+		print("Creating folder '{}' to save files. And using it.".format(IMAGE_PATH))
+	except Exception:
+		print("Could not create '{}' folder.".format(IMAGE_PATH))
+		exit(1)
+	finally:
+		pass
+
+os.chdir(IMAGE_PATH)
+initialTime = time.time()
+actualTime = initialTime
+lastTime = actualTime
+
+c=0
+while True:
+	actualTime = time.time()
+	if (actualTime-lastTime > 1):
+		lastTime = actualTime
+		localTime = time.localtime(lastTime)
+		timestamp = IMAGE_NAME_SEPARATOR.join([str(a) for a in localTime[:6]])
+		imageName = "{}{}{}.{}".format(IMAGE_FIRST_NAME,
+			IMAGE_NAME_SEPARATOR,
+			timestamp,
+			IMAGE_FORMAT)
+		command = "raspistill{}{} -o {}".format(COM_PREVIEW,
+			COM_TIMEOUT,
+			imageName)
+		c=c+1
+		print(command)
+		os.system(command)
+	time.sleep(TIME_OF_SLEEP)
